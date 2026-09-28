@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_ICICOS_Review"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_ICICOS_Review">
+    <bpmn:participant id="Participant_ICICOS_Review" name="ICICoS Review Governance" processRef="Process_ICICOS_Review" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ICICOS_Review" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Review">
+      <bpmn:lane id="Lane_Author_Rev" name="Author">
+        <bpmn:flowNodeRef>Start_Rev</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitPaper</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PrepareRevision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Accepted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Rejected</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_TPC_Chair" name="TPC Chair">
+        <bpmn:flowNodeRef>Task_DeskReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AssignReviewers</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ReviewDecision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyAccept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyRevision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyReject_Rev</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Reviewer" name="Reviewer">
+        <bpmn:flowNodeRef>Task_PerformPeerReview</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Rev" name="Paper Submitted to EDAS">
+      <bpmn:outgoing>Flow_R01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_SubmitPaper" name="Submit Initial Anonymized Manuscript">
+      <bpmn:incoming>Flow_R01</bpmn:incoming>
+      <bpmn:outgoing>Flow_R12</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_DeskReview" name="Perform Desk Review &amp; Plagiarism Check">
+      <bpmn:incoming>Flow_R12</bpmn:incoming>
+      <bpmn:outgoing>Flow_R23</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AssignReviewers" name="Assign At Least Three Independent Reviewers">
+      <bpmn:incoming>Flow_R23</bpmn:incoming>
+      <bpmn:outgoing>Flow_R34</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_PerformPeerReview" name="Evaluate Manuscript Using 5-Point Rubric">
+      <bpmn:incoming>Flow_R34</bpmn:incoming>
+      <bpmn:outgoing>Flow_R4G</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Gateway_ReviewDecision" name="Consolidated Review Score?">
+      <bpmn:incoming>Flow_R4G</bpmn:incoming>
+      <bpmn:outgoing>Flow_Score_Accept</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Score_Revision</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Score_Reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_NotifyAccept" name="Send Acceptance Notification &amp; Author Instructions">
+      <bpmn:incoming>Flow_Score_Accept</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_EndAccept</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_NotifyRevision" name="Send Major Revision Request with Reviewer Notes">
+      <bpmn:incoming>Flow_Score_Revision</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_RevisionPrep</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_PrepareRevision" name="Submit Revised Manuscript Within 10 Days">
+      <bpmn:incoming>Flow_to_RevisionPrep</bpmn:incoming>
+      <bpmn:outgoing>Flow_Revision_to_TPC</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_NotifyReject_Rev" name="Send Rejection Notification with Reviewer Feedback">
+      <bpmn:incoming>Flow_Score_Reject</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_EndReject</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Accepted" name="Paper Accepted For Publication">
+      <bpmn:incoming>Flow_to_EndAccept</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="End_Rejected" name="Submission Terminated">
+      <bpmn:incoming>Flow_to_EndReject</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_R01" sourceRef="Start_Rev" targetRef="Task_SubmitPaper" />
+    <bpmn:sequenceFlow id="Flow_R12" sourceRef="Task_SubmitPaper" targetRef="Task_DeskReview" />
+    <bpmn:sequenceFlow id="Flow_R23" sourceRef="Task_DeskReview" targetRef="Task_AssignReviewers" />
+    <bpmn:sequenceFlow id="Flow_R34" sourceRef="Task_AssignReviewers" targetRef="Task_PerformPeerReview" />
+    <bpmn:sequenceFlow id="Flow_R4G" sourceRef="Task_PerformPeerReview" targetRef="Gateway_ReviewDecision" />
+
+    <bpmn:sequenceFlow id="Flow_Score_Accept" name="[Score >= 3.5]" sourceRef="Gateway_ReviewDecision" targetRef="Task_NotifyAccept">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">[Score &gt;= 3.5: Accept]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_Score_Revision" name="[Score 2.80-3.49]" sourceRef="Gateway_ReviewDecision" targetRef="Task_NotifyRevision">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">[Score 2.80 - 3.49: Major Revision]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_Score_Reject" name="[Score &lt; 2.80]" sourceRef="Gateway_ReviewDecision" targetRef="Task_NotifyReject_Rev">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">[Score &lt; 2.80: Reject]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_to_RevisionPrep" sourceRef="Task_NotifyRevision" targetRef="Task_PrepareRevision" />
+    <bpmn:sequenceFlow id="Flow_Revision_to_TPC" sourceRef="Task_PrepareRevision" targetRef="Task_DeskReview" />
+    <bpmn:sequenceFlow id="Flow_to_EndAccept" sourceRef="Task_NotifyAccept" targetRef="End_Accepted" />
+    <bpmn:sequenceFlow id="Flow_to_EndReject" sourceRef="Task_NotifyReject_Rev" targetRef="End_Rejected" />
+  </bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_ICICOS_CameraReady"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_ICICOS_CR">
+    <bpmn:participant id="Participant_ICICOS_CR" name="ICICoS Camera Ready and Publication Lifecycle" processRef="Process_ICICOS_CR" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ICICOS_CR" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_CR">
+      <bpmn:lane id="Lane_Author_CR" name="Author">
+        <bpmn:flowNodeRef>Start_CR</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ValidatePDF</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitCopyright</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UploadFinalPackage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FixFormatDefects</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Published</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Publication_Chair" name="Publication Chair">
+        <bpmn:flowNodeRef>Task_AuditCameraReady</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_FormatAudit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_IssueFormatDefectNotice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PackageIEEEProceedings</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_IEEE_Ops" name="IEEE Operations">
+        <bpmn:flowNodeRef>Task_IngestIEEEXplore</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_CR" name="Camera Ready Phase Opened">
+      <bpmn:outgoing>Flow_C01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_ValidatePDF" name="Validate Final Manuscript in IEEE PDF eXpress (ID: 61234X)">
+      <bpmn:incoming>Flow_C01</bpmn:incoming>
+      <bpmn:outgoing>Flow_C12</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_SubmitCopyright" name="Complete Electronic IEEE Copyright Form (eCF)">
+      <bpmn:incoming>Flow_C12</bpmn:incoming>
+      <bpmn:outgoing>Flow_C23</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_UploadFinalPackage" name="Upload Certified PDF, eCF &amp; PDF eXpress Receipt to EDAS">
+      <bpmn:incoming>Flow_C23</bpmn:incoming>
+      <bpmn:incoming>Flow_Refix_to_Upload</bpmn:incoming>
+      <bpmn:outgoing>Flow_C34</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuditCameraReady" name="Audit Formatting, Margin Bounds &amp; Copyright Notice">
+      <bpmn:incoming>Flow_C34</bpmn:incoming>
+      <bpmn:outgoing>Flow_C4G</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Gateway_FormatAudit" name="Manuscript Format Compliant?">
+      <bpmn:incoming>Flow_C4G</bpmn:incoming>
+      <bpmn:outgoing>Flow_Format_Compliant</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Format_Defect</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_PackageIEEEProceedings" name="Package Final Proceedings for IEEE Xplore Delivery">
+      <bpmn:incoming>Flow_Format_Compliant</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_IEEE_Ingest</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_IssueFormatDefectNotice" name="Issue Format Defect Notice Requiring 48-Hour Remediation">
+      <bpmn:incoming>Flow_Format_Defect</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_FixFormat</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_FixFormatDefects" name="Correct Formatting &amp; Re-validate PDF eXpress">
+      <bpmn:incoming>Flow_to_FixFormat</bpmn:incoming>
+      <bpmn:outgoing>Flow_Refix_to_Upload</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_IngestIEEEXplore" name="Ingest &amp; Index Conference Proceedings in IEEE Xplore">
+      <bpmn:incoming>Flow_to_IEEE_Ingest</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_EndPublished</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Published" name="Proceedings Indexed in IEEE Xplore">
+      <bpmn:incoming>Flow_to_EndPublished</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_C01" sourceRef="Start_CR" targetRef="Task_ValidatePDF" />
+    <bpmn:sequenceFlow id="Flow_C12" sourceRef="Task_ValidatePDF" targetRef="Task_SubmitCopyright" />
+    <bpmn:sequenceFlow id="Flow_C23" sourceRef="Task_SubmitCopyright" targetRef="Task_UploadFinalPackage" />
+    <bpmn:sequenceFlow id="Flow_C34" sourceRef="Task_UploadFinalPackage" targetRef="Task_AuditCameraReady" />
+    <bpmn:sequenceFlow id="Flow_C4G" sourceRef="Task_AuditCameraReady" targetRef="Gateway_FormatAudit" />
+
+    <bpmn:sequenceFlow id="Flow_Format_Compliant" name="[Compliant]" sourceRef="Gateway_FormatAudit" targetRef="Task_PackageIEEEProceedings">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">[Compliant Camera-Ready Package]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_Format_Defect" name="[Format Defect]" sourceRef="Gateway_FormatAudit" targetRef="Task_IssueFormatDefectNotice">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">[Format Defect / Margin / Copyright Error]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_to_FixFormat" sourceRef="Task_IssueFormatDefectNotice" targetRef="Task_FixFormatDefects" />
+    <bpmn:sequenceFlow id="Flow_Refix_to_Upload" name="[Re-upload Fixed PDF]" sourceRef="Task_FixFormatDefects" targetRef="Task_UploadFinalPackage" />
+    <bpmn:sequenceFlow id="Flow_to_IEEE_Ingest" sourceRef="Task_PackageIEEEProceedings" targetRef="Task_IngestIEEEXplore" />
+    <bpmn:sequenceFlow id="Flow_to_EndPublished" sourceRef="Task_IngestIEEEXplore" targetRef="End_Published" />
+  </bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,28 @@
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment
+.venv
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache & compiled bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Local databases & embeddings cache
+results/chroma_db/
+results/cache/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*

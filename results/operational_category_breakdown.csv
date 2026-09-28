@@ -1,0 +1,8 @@
+,document_requirement,workflow,decision_gateway,hybrid
+Faithfulness Score,0.625,0.738,0.597,0.436
+Answer Relevancy,0.624,0.510,0.596,0.552
+Context Precision,0.640,0.800,1.000,0.880
+Context Recall,1.000,1.000,1.000,1.000
+BERTScore (F1),0.516,0.546,0.522,0.537
+Hallucination Rate,37.5%,26.2%,40.3%,56.4%
+Actor Attribution Acc,100.0%,100.0%,100.0%,100.0%

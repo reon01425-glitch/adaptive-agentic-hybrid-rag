@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_ICICOS_Reg"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_ICICOS_Reg">
+    <bpmn:participant id="Participant_ICICOS" name="ICICoS Conference Lifecycle" processRef="Process_ICICOS_Reg" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ICICOS_Reg" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Reg">
+      <bpmn:lane id="Lane_Author" name="Author">
+        <bpmn:flowNodeRef>Start_Reg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReuploadSlip</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReceiveLoA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Cancelled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Success</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Treasurer" name="Bendahara">
+        <bpmn:flowNodeRef>Task_AuditPayment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_PaymentCheck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyReject</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Secretariat" name="Sekretariat">
+        <bpmn:flowNodeRef>Task_IssueLoA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UpdateSchedule</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Reg" name="Registration Initiated">
+      <bpmn:outgoing>Flow_01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_SubmitRequest" name="Submit Registration &amp; Upload Payment Slip">
+      <bpmn:incoming>Flow_01</bpmn:incoming>
+      <bpmn:incoming>Flow_Reupload_to_Audit</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_AuditPayment" name="Audit Payment Receipt Against Bank Mutation">
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_2G</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Gateway_PaymentCheck" name="Payment Receipt Valid?">
+      <bpmn:incoming>Flow_2G</bpmn:incoming>
+      <bpmn:outgoing>Flow_Valid</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Invalid</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_IssueLoA" name="Issue Letter of Acceptance (LoA) &amp; Payment Receipt">
+      <bpmn:incoming>Flow_Valid</bpmn:incoming>
+      <bpmn:outgoing>Flow_LoA_to_Schedule</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_NotifyReject" name="Issue Payment Rejection Notice">
+      <bpmn:incoming>Flow_Invalid</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reject_to_Reupload</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ReuploadSlip" name="Re-upload Corrected Payment Slip Within 3 Days">
+      <bpmn:incoming>Flow_Reject_to_Reupload</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reupload_to_Audit</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Timeout</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_UpdateSchedule" name="Assign Presentation Schedule &amp; Final Roster">
+      <bpmn:incoming>Flow_LoA_to_Schedule</bpmn:incoming>
+      <bpmn:outgoing>Flow_Schedule_to_Receive</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:task id="Task_ReceiveLoA" name="Receive LoA and Presentation Schedule">
+      <bpmn:incoming>Flow_Schedule_to_Receive</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_EndSuccess</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:endEvent id="End_Success" name="Registration Completed">
+      <bpmn:incoming>Flow_to_EndSuccess</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="End_Cancelled" name="Registration Cancelled Due To Non-Payment">
+      <bpmn:incoming>Flow_Timeout</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_01" sourceRef="Start_Reg" targetRef="Task_SubmitRequest" />
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="Task_SubmitRequest" targetRef="Task_AuditPayment" />
+    <bpmn:sequenceFlow id="Flow_2G" sourceRef="Task_AuditPayment" targetRef="Gateway_PaymentCheck" />
+    
+    <bpmn:sequenceFlow id="Flow_Valid" name="[Valid]" sourceRef="Gateway_PaymentCheck" targetRef="Task_IssueLoA">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">[Valid Payment Receipt]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    
+    <bpmn:sequenceFlow id="Flow_Invalid" name="[Invalid]" sourceRef="Gateway_PaymentCheck" targetRef="Task_NotifyReject">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">[Invalid / Discrepancy]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    
+    <bpmn:sequenceFlow id="Flow_LoA_to_Schedule" sourceRef="Task_IssueLoA" targetRef="Task_UpdateSchedule" />
+    <bpmn:sequenceFlow id="Flow_Schedule_to_Receive" sourceRef="Task_UpdateSchedule" targetRef="Task_ReceiveLoA" />
+    <bpmn:sequenceFlow id="Flow_to_EndSuccess" sourceRef="Task_ReceiveLoA" targetRef="End_Success" />
+    
+    <bpmn:sequenceFlow id="Flow_Reject_to_Reupload" sourceRef="Task_NotifyReject" targetRef="Task_ReuploadSlip" />
+    <bpmn:sequenceFlow id="Flow_Reupload_to_Audit" name="[Re-upload Slip]" sourceRef="Task_ReuploadSlip" targetRef="Task_SubmitRequest" />
+    <bpmn:sequenceFlow id="Flow_Timeout" name="[Grace Period Expired]" sourceRef="Task_ReuploadSlip" targetRef="End_Cancelled" />
+  </bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,6 @@
+Architecture,Process Path Acc. (PPA),Gateway Decision Acc. (GDA),Actor Attribution Acc. (AAA)
+1. LLM Only (Zero-shot),0.138,0.438,0.000
+2. Traditional Vector RAG,0.625,0.738,0.871
+3. Graph RAG (BPMN Subgraph),0.250,0.887,0.821
+4. Static Hybrid RAG,0.725,0.838,0.871
+5. Proposed Agentic Hybrid RAG,0.875,0.988,1.000

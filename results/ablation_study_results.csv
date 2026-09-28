@@ -1,0 +1,5 @@
+Architectural Variant,Faithfulness,Relevancy,Precision,Hallucination,PCS,Latency,Observed Failure Pattern
+1. Full Pipeline (Proposed),0.627,0.577,0.850,37.3%,0.942,1.27s,High factual compliance; grounded dual-modal synthesis.
+2. Ablation 1: w/o Adaptive Router,0.860,0.569,0.854,14.0%,0.916,0.83s,Modality dilution; fixed quotas waste context budget on non-salient modality.
+3. Ablation 2: w/o BPMN Graph Retriever,0.755,0.570,0.936,24.5%,0.549,3.65s,"Topological scrambling; PCS collapses by 41.7%, opposing XOR branches conflate."
+4. Ablation 3: w/o Critic Verification,0.742,0.560,0.839,25.8%,0.833,5.39s,Parametric hallucination leakage; latency drops 5.45s but ungrounded claims bypass filters.
