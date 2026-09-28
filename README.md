@@ -100,8 +100,8 @@ Evaluated on the **ICICoS ProcessQA** benchmark suite ($N = 338$ complete corpus
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/reon01425-glitch/adaptive-agentic-hybrid-rag-bpmn.git
-cd adaptive-agentic-hybrid-rag-bpmn
+git clone https://github.com/reon01425-glitch/adaptive-agentic-hybrid-rag.git
+cd adaptive-agentic-hybrid-rag
 ```
 
 ### 2. Environment Setup
